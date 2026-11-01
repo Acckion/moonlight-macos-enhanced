@@ -145,11 +145,10 @@
         [window setLevel:show ? NSNormalWindowLevel : NSMainMenuWindowLevel + 1];
         window.contentAspectRatio = [self borderlessFrameForScreen:window.screen ?: NSScreen.mainScreen].size;
         [window setFrame:[self borderlessFrameForScreen:window.screen ?: NSScreen.mainScreen] display:YES];
-    } else {
-        NSApplicationPresentationOptions requested = MLFullscreenPresentationOptions(NSApp.presentationOptions, show);
-        [NSApp setPresentationOptions:requested];
-        Log(LOG_I, @"[window] Native menu-bar options requested=%llu result=%llu", (unsigned long long)requested, (unsigned long long)NSApp.presentationOptions);
     }
+    // Native fullscreen is managed by the window delegate. Setting application
+    // presentation options again here can replace AppKit's fullscreen policy.
+
     Log(LOG_I, @"[window] Fullscreen menu bar requested=%d legacyVisible=%d native=%d options=%llu system=%llu",
         show, NSMenu.menuBarVisible, nativeFullscreen,
         (unsigned long long)NSApp.presentationOptions,

@@ -14,3 +14,9 @@ The geometry checks cover notched and ordinary displays, negative secondary-disp
 Manual acceptance is required: choose a host profile, enable the option, and stream Desktop. Check native and borderless fullscreen with the pointer away from the top. Toggle off/on in the stream control menu; check that the stream stays connected, menus remain clickable, and the picture starts below the visible bar. Exit fullscreen, switch applications, and confirm their normal menu-bar behavior. Reopen settings to check persistence, including old profiles that lack the optional field.
 
 A captured stream-window image excludes the macOS menu bar outside its bounds. Legacy `NSMenu.menuBarVisible` and a requested presentation mask alone do not establish what the user sees in a native fullscreen Space. Verify the actual screen before claiming acceptance.
+
+## Verified locally
+
+On 2026-11-01, the installed `MoonlightMenuBarPreview.app` Release build was tested with a live Sunshine Desktop stream. The user confirmed visible menu bars in borderless mode and native fullscreen on its own Space. Native entry logged `show=1 proposed=1029 returned=1029`, followed by `legacyVisible=1 native=1`. The earlier implementation that removed AppKit's auto-hide menu flag remained immersive even when the profile requested a visible bar. Keeping native automatic menu-bar management and avoiding a second application-level override after entry resolved the observed failure.
+
+Visibility when toggling off, other macOS versions, and Intel machines still require manual checks; the isolated checks cover flags and continuation/close behavior, not those screens.

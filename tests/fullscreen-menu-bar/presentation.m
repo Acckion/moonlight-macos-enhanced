@@ -8,9 +8,10 @@ int main(void) {
         NSApplicationPresentationOptions show = MLFullscreenPresentationOptions(proposed, YES);
         assert(show & NSApplicationPresentationFullScreen);
         assert(show & NSApplicationPresentationAutoHideDock);
+        assert(show & NSApplicationPresentationAutoHideMenuBar);
+        assert(!(MLFullscreenPresentationOptions(0, YES) & NSApplicationPresentationAutoHideMenuBar));
         assert(show & NSApplicationPresentationDisableAppleMenu);
-        assert(!(show & (NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar |
-                         NSApplicationPresentationHideMenuBar | NSApplicationPresentationAutoHideToolbar)));
+        assert(!(show & (NSApplicationPresentationHideDock | NSApplicationPresentationHideMenuBar | NSApplicationPresentationAutoHideToolbar)));
         NSApplicationPresentationOptions hide = MLFullscreenPresentationOptions(show, NO);
         assert(hide & NSApplicationPresentationHideMenuBar);
         assert(!(hide & NSApplicationPresentationAutoHideMenuBar));

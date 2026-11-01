@@ -10,6 +10,12 @@ static inline NSApplicationPresentationOptions MLFullscreenPresentationOptions(
                   NSApplicationPresentationAutoHideToolbar);
     if (showMenuBar) {
         proposed |= NSApplicationPresentationAutoHideDock;
+        // Native fullscreen requires AppKit's automatic menu-bar management.
+        // Its per-app AppleMenuBarVisibleInFullscreen preference determines whether
+        // the bar remains visible; stripping this flag forces immersive presentation.
+        if (proposed & NSApplicationPresentationFullScreen) {
+            proposed |= NSApplicationPresentationAutoHideMenuBar;
+        }
     } else {
         proposed |= NSApplicationPresentationHideDock | NSApplicationPresentationHideMenuBar;
     }

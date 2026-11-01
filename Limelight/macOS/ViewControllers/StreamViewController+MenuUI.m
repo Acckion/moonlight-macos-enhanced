@@ -1435,11 +1435,13 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
     if (ControllerMenuPanel.shared.isPresented) {
         return;
     }
+    NSString *title = MLString(@"Stream", nil);
     if (!self.streamMenu) {
-        self.streamMenu = [[NSMenu alloc] initWithTitle:@"StreamMenu"];
+        self.streamMenu = [[NSMenu alloc] initWithTitle:title];
         self.streamMenu.delegate = self;
     }
-    self.streamMenuBarItem.title = MLString(@"Stream", nil);
+    self.streamMenu.title = title;
+    self.streamMenuBarItem.title = title;
     [self.streamMenu removeAllItems];
 
     void (^setSymbol)(NSMenuItem *, NSString *) = ^(NSMenuItem *item, NSString *symbolName) {

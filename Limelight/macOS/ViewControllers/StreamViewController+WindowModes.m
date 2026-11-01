@@ -4,7 +4,6 @@
 //
 
 #import "StreamViewController_Internal.h"
-#import "MLFullscreenPresentation.h"
 
 @implementation StreamViewController (WindowModes)
 
@@ -61,20 +60,13 @@
 }
 
 - (void)prepareNativeFullscreenMenuBarPreference {
-    if (!self.savedPresentationOptionsValid) {
-        self.savedPresentationOptions = NSApp.presentationOptions & ~(NSApplicationPresentationFullScreen | NSApplicationPresentationAutoHideToolbar);
-        self.savedPresentationOptionsValid = YES;
-    }
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     NSString *key = @"AppleMenuBarVisibleInFullscreen";
-    if (!self.savedAppMenuBarPreferenceValid) {
-        self.savedAppMenuBarPreference = [defaults persistentDomainForName:NSBundle.mainBundle.bundleIdentifier][key];
-        self.savedAppMenuBarPreferenceValid = YES;
+    if (!self.originalFullscreenMenuBarPreference) {
+        self.originalFullscreenMenuBarPreference =
+            [defaults persistentDomainForName:NSBundle.mainBundle.bundleIdentifier][key] ?: NSNull.null;
     }
-    BOOL show = [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid];
-    if ([defaults boolForKey:key] != show || ![defaults persistentDomainForName:NSBundle.mainBundle.bundleIdentifier][key]) {
-        [defaults setBool:show forKey:key];
-    }
+    [defaults setBool:[SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid] forKey:key];
 }
 
 - (void)enterBorderlessPresentationOptionsIfNeeded {
@@ -89,8 +81,15 @@
         self.savedPresentationOptionsValid = YES;
     }
 
-    BOOL show = [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid];
-    NSApplicationPresentationOptions opts = MLFullscreenPresentationOptions(NSApp.presentationOptions, show);
+    NSApplicationPresentationOptions opts = [NSApp presentationOptions];
+    NSScreen *screen = self.view.window.screen ?: [NSScreen mainScreen];
+    if ([SettingsClass borderlessAvoidsNotchFor:self.app.host.uuid screen:screen]) {
+        // The window stops below the notch; the menu bar fills the strip beside it.
+        opts |= NSApplicationPresentationHideDock;
+        opts &= ~NSApplicationPresentationHideMenuBar;
+    } else {
+        opts |= (NSApplicationPresentationHideDock | NSApplicationPresentationHideMenuBar);
+    }
     [NSApp setPresentationOptions:opts];
 }
 
@@ -101,74 +100,34 @@
         });
         return;
     }
-    if (self.savedAppMenuBarPreferenceValid) {
-        if (self.savedAppMenuBarPreference) {
-            [NSUserDefaults.standardUserDefaults setObject:self.savedAppMenuBarPreference forKey:@"AppleMenuBarVisibleInFullscreen"];
-        } else {
+    // The fullscreen preference belongs only to this application, never NSGlobalDomain.
+    id original = self.originalFullscreenMenuBarPreference;
+    if (original) {
+        self.originalFullscreenMenuBarPreference = nil;
+        if (original == NSNull.null) {
             [NSUserDefaults.standardUserDefaults removeObjectForKey:@"AppleMenuBarVisibleInFullscreen"];
+        } else {
+            [NSUserDefaults.standardUserDefaults setObject:original forKey:@"AppleMenuBarVisibleInFullscreen"];
         }
-        self.savedAppMenuBarPreferenceValid = NO;
-        self.savedAppMenuBarPreference = nil;
     }
-    if (!self.savedPresentationOptionsValid) return;
+    if (!self.savedPresentationOptionsValid) {
+        return;
+    }
     [NSApp setPresentationOptions:self.savedPresentationOptions];
     self.savedPresentationOptionsValid = NO;
 }
 
 - (NSApplicationPresentationOptions)window:(NSWindow *)window willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)proposedOptions {
-    BOOL show = [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid];
-    NSApplicationPresentationOptions options = MLFullscreenPresentationOptions(proposedOptions, show);
-    Log(LOG_I, @"[window] Fullscreen delegate host=%@ show=%d proposed=%llu returned=%llu", self.app.host.uuid, show, (unsigned long long)proposedOptions, (unsigned long long)options);
+    [self prepareNativeFullscreenMenuBarPreference];
+    if ([SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid]) {
+        // Keep AppKit's native fullscreen policy; removing its auto-hide flag
+        // forces immersive presentation even when the visible-menu preference is on.
+        return proposedOptions;
+    }
+    NSApplicationPresentationOptions options = proposedOptions;
+    options &= ~(NSApplicationPresentationAutoHideDock | NSApplicationPresentationAutoHideMenuBar);
+    options |= (NSApplicationPresentationHideDock | NSApplicationPresentationHideMenuBar);
     return options;
-}
-
-- (void)applyFullscreenMenuBarPreferenceIfNeeded {
-    NSWindow *window = self.view.window;
-    if (!NSThread.isMainThread || !window || !window.isKeyWindow ||
-        !NSApp.isActive || self.fullscreenTransitionInProgress) return;
-    BOOL nativeFullscreen = [self isWindowFullscreen];
-    BOOL borderless = (window.styleMask & NSWindowStyleMaskTitled) == 0 && !nativeFullscreen;
-    if (!nativeFullscreen && !borderless) return;
-    BOOL show = [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid];
-    if (self.fullscreenMenuBarPreferenceApplied && self.fullscreenMenuBarAppliedValue == show) return;
-    if (nativeFullscreen && self.fullscreenMenuBarPreferenceApplied && self.fullscreenMenuBarAppliedValue != show) {
-        // AppKit reads the per-app menu-bar preference when entering a fullscreen Space.
-        // Re-enter that Space without disconnecting the stream.
-        self.pendingFullscreenMenuBarRefresh = YES;
-        [window toggleFullScreen:self];
-        return;
-    }
-    self.fullscreenMenuBarPreferenceApplied = YES;
-    self.fullscreenMenuBarAppliedValue = show;
-    if (borderless) {
-        [self enterBorderlessPresentationOptionsIfNeeded];
-        [window setLevel:show ? NSNormalWindowLevel : NSMainMenuWindowLevel + 1];
-        window.contentAspectRatio = [self borderlessFrameForScreen:window.screen ?: NSScreen.mainScreen].size;
-        [window setFrame:[self borderlessFrameForScreen:window.screen ?: NSScreen.mainScreen] display:YES];
-    }
-    // Native fullscreen is managed by the window delegate. Setting application
-    // presentation options again here can replace AppKit's fullscreen policy.
-
-    Log(LOG_I, @"[window] Fullscreen menu bar requested=%d legacyVisible=%d native=%d options=%llu system=%llu",
-        show, NSMenu.menuBarVisible, nativeFullscreen,
-        (unsigned long long)NSApp.presentationOptions,
-        (unsigned long long)NSApp.currentSystemPresentationOptions);
-}
-
-- (void)resumeFullscreenAfterMenuBarRefresh {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.stopStreamInProgress && self.view.window) {
-            [self.view.window makeKeyAndOrderFront:nil];
-            [self switchToFullscreenMode:nil];
-        }
-    });
-}
-
-- (IBAction)toggleFullscreenMenuBarFromMenu:(id)sender {
-    BOOL show = ![SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid];
-    [SettingsClass setShowMenuBarInFullscreen:show for:self.app.host.uuid];
-    [self applyFullscreenMenuBarPreferenceIfNeeded];
-    [self rebuildStreamMenu];
 }
 
 - (IBAction)performClose:(id)sender {
@@ -502,9 +461,11 @@
 /// The frame a borderless stream window covers: the whole screen, or the part below
 /// the notch when the profile keeps the picture out of it.
 - (NSRect)borderlessFrameForScreen:(NSScreen *)screen {
-    return MLBorderlessFrame(screen.frame, screen.safeAreaInsets.top,
-        [SettingsClass borderlessAvoidsNotchFor:self.app.host.uuid screen:screen],
-        [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid], NSStatusBar.systemStatusBar.thickness);
+    NSRect frame = screen.frame;
+    if ([SettingsClass borderlessAvoidsNotchFor:self.app.host.uuid screen:screen]) {
+        frame.size.height -= screen.safeAreaInsets.top;
+    }
+    return frame;
 }
 
 - (void)applyBorderlessMode {
@@ -551,7 +512,7 @@
         newMask |= NSWindowStyleMaskBorderless;
         [window setStyleMask:newMask];
         // Using NSMainMenuWindowLevel + 1 to ensure it covers the menu bar area
-        [window setLevel:[SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid] ? NSNormalWindowLevel : NSMainMenuWindowLevel + 1];
+        [window setLevel:NSMainMenuWindowLevel + 1];
 
         NSRect targetFrame = screenFrame;
         [window setFrame:targetFrame display:YES];
@@ -730,14 +691,11 @@
 
 - (void)windowDidFailToEnterFullScreen:(NSWindow *)window {
     self.fullscreenTransitionInProgress = NO;
-    self.pendingFullscreenMenuBarRefresh = NO;
-    self.fullscreenMenuBarPreferenceApplied = NO;
     [self restorePresentationOptionsIfNeeded];
 }
 
 - (void)windowDidFailToExitFullScreen:(NSWindow *)window {
     self.fullscreenTransitionInProgress = NO;
-    self.pendingFullscreenMenuBarRefresh = NO;
     if (self.pendingCloseWindowAfterFullscreenExit) {
         // A failed native Space transition must never leave an invisible window.
         self.pendingCloseWindowAfterFullscreenExit = NO;
@@ -750,8 +708,6 @@
 
 - (void)windowWillEnterFullScreen:(NSNotification *)notification {
     if ([self isOurWindowTheWindowInNotiifcation:notification]) {
-        [self prepareNativeFullscreenMenuBarPreference];
-        self.fullscreenMenuBarPreferenceApplied = NO;
         self.fullscreenTransitionInProgress = YES;
         [self logCurrentWindowStateWithContext:@"window-will-enter-fullscreen"];
     }

@@ -98,7 +98,6 @@ class SettingsClass: NSObject {
         "autoAdjustBitrate": settings.autoAdjustBitrate ?? true,
         "yuv444": settings.enableYUV444 ?? false,
         "ignoreAspectRatio": settings.ignoreAspectRatio ?? SettingsModel.defaultIgnoreAspectRatio,
-        "showMenuBarInFullscreen": settings.showMenuBarInFullscreen ?? false,
         "showLocalCursor": settings.showLocalCursor ?? false,
         "microphone": settings.enableMicrophone ?? false,
         "enableAdaptiveBitrate": settings.enableAdaptiveBitrate ?? SettingsModel.defaultEnableAdaptiveBitrate,

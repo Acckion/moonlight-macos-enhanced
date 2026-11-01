@@ -2023,4 +2023,4 @@
 
 /* Fullscreen presentation */
 "Show macOS Menu Bar in Fullscreen" = "Show macOS Menu Bar in Fullscreen";
-"Fullscreen Menu Bar Hint" = "Keep the menu bar visible in fullscreen and borderless fullscreen. When off, it stays hidden even at the top edge. Windowed mode follows macOS settings.";
+"Fullscreen Menu Bar Hint" = "Show the macOS menu bar in native fullscreen. Takes effect the next time you enter fullscreen. Borderless and windowed modes keep their existing behavior.";

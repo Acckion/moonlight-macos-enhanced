@@ -413,12 +413,6 @@ extension SettingsClass {
     Settings.getSettings(for: key)?.showMenuBarInFullscreen ?? false
   }
 
-  @objc static func setShowMenuBarInFullscreen(_ show: Bool, for key: String) {
-    guard var settings = Settings.getSettings(for: key) else { return }
-    settings.showMenuBarInFullscreen = show
-    persist(settings, for: key)
-  }
-
   /// Whether a borderless window should stay below the notch of `screen`.
   @objc static func borderlessAvoidsNotch(for key: String, screen: NSScreen?) -> Bool {
     guard let settings = Settings.getSettings(for: key),

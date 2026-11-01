@@ -1533,12 +1533,6 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
 
     [windowMenu addItem:[NSMenuItem separatorItem]];
 
-    NSMenuItem *menuBarItem = [[NSMenuItem alloc] initWithTitle:MLString(@"Show macOS Menu Bar in Fullscreen", nil) action:@selector(toggleFullscreenMenuBarFromMenu:) keyEquivalent:@""];
-    menuBarItem.target = self;
-    menuBarItem.state = [SettingsClass showMenuBarInFullscreenFor:self.app.host.uuid] ? NSControlStateValueOn : NSControlStateValueOff;
-    setSymbol(menuBarItem, @"menubar.rectangle");
-    [windowMenu addItem:menuBarItem];
-
     NSMenuItem *toggleBallItem = [[NSMenuItem alloc] initWithTitle:MLString(@"Show Fullscreen Control Ball", nil) action:@selector(toggleFullscreenControlBallFromMenu:) keyEquivalent:@""];
     [self applyShortcut:[self streamShortcutForAction:MLShortcutActionToggleFullscreenControlBall] toMenuItem:toggleBallItem];
     toggleBallItem.target = self;

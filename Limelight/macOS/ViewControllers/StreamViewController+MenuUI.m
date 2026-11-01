@@ -1,3 +1,4 @@
+#import "MLMijiaPowerController.h"
 //
 //  StreamViewController+MenuUI.m
 //  Moonlight for macOS
@@ -1929,6 +1930,10 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
     [self.streamMenu addItem:networkItem];
 
     // 二级：主机命令（/applist SuperCmds，由主机对当前运行的应用解析）
+    if (self.app.host.uuid.length > 0) {
+        [self.streamMenu addItem:[[MLMijiaPowerController shared] menuItemForHostUUID:self.app.host.uuid name:self.app.host.displayName]];
+    }
+
     if (self.app.superCommands.count > 0) {
         NSMenuItem *hostCommandsItem = [[NSMenuItem alloc] initWithTitle:MLString(@"Host Commands", nil) action:nil keyEquivalent:@""];
         setSymbol(hostCommandsItem, @"terminal");

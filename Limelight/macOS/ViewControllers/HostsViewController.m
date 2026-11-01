@@ -31,6 +31,7 @@
 #import "DataManager.h"
 #import "PairManager.h"
 #import "WakeOnLanManager.h"
+#import "MLMijiaPowerController.h"
 #import "HttpManager.h"
 #import "HttpRequest.h"
 #import "ServerInfoResponse.h"
@@ -427,7 +428,7 @@
     }
     showHiddenAppsMenuItem.state = host.showHiddenApps ? NSControlStateValueOn : NSControlStateValueOff;
 
-    for (NSString *identifier in @[ @"sleepHostItem", @"renameItem", @"advancedSeparator", @"settingsItem", @"detailsItem", @"connectionsItem" ]) {
+    for (NSString *identifier in @[ @"sleepHostItem", @"mijiaPowerItem", @"renameItem", @"advancedSeparator", @"settingsItem", @"detailsItem", @"connectionsItem" ]) {
         NSMenuItem *existingItem = [HostsViewController getMenuItemForIdentifier:identifier inMenu:menu];
         if (existingItem != nil) {
             [menu removeItem:existingItem];
@@ -444,6 +445,9 @@
         MLSetMenuItemImage(sleepItem, [NSImage imageWithSystemSymbolName:@"moon.zzz" accessibilityDescription:nil]);
         [menu insertItem:sleepItem atIndex:[menu indexOfItem:wakeMenuItem] + 1];
     }
+
+    NSMenuItem *powerItem = [[MLMijiaPowerController shared] menuItemForHostUUID:host.uuid name:host.displayName];
+    [menu insertItem:powerItem atIndex:wakeMenuItem ? [menu indexOfItem:wakeMenuItem] + 1 : 0];
 
     NSInteger removeHostIndex = removeHostMenuItem ? [menu indexOfItem:removeHostMenuItem] : menu.numberOfItems;
 

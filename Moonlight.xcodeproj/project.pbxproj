@@ -28,6 +28,8 @@
 		D20000220000000000000022 /* Ds5HapticsAudioRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = D20000230000000000000023 /* Ds5HapticsAudioRenderer.m */; };
 		D20000240000000000000024 /* FileProviderCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000250000000000000025 /* FileProviderCoordinator.swift */; };
 		D30000020000000000000002 /* SettingsSearchIndex.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30000010000000000000001 /* SettingsSearchIndex.generated.swift */; };
+		F10000020000000000000002 /* MLMijiaPowerController.m in Sources */ = {isa = PBXBuildFile; fileRef = F10000010000000000000001 /* MLMijiaPowerController.m */; };
+		F10000040000000000000004 /* mijia_power.py in Resources */ = {isa = PBXBuildFile; fileRef = F10000030000000000000003 /* mijia_power.py */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +102,8 @@
 		D20000230000000000000023 /* Ds5HapticsAudioRenderer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Limelight/Input/Ds5HapticsAudioRenderer.m"; sourceTree = SOURCE_ROOT; };
 		D20000250000000000000025 /* FileProviderCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Limelight/macOS/ViewControllers/FileProviderCoordinator.swift"; sourceTree = SOURCE_ROOT; };
 		D30000010000000000000001 /* SettingsSearchIndex.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Limelight/macOS/ViewControllers/SettingsSearchIndex.generated.swift"; sourceTree = SOURCE_ROOT; };
+		F10000010000000000000001 /* MLMijiaPowerController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Limelight/macOS/PowerControl/MLMijiaPowerController.m"; sourceTree = SOURCE_ROOT; };
+		F10000030000000000000003 /* mijia_power.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "Limelight/macOS/PowerControl/mijia_power.py"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -304,6 +308,8 @@
 		FB290CE519B2C406004C83CF = {
 			isa = PBXGroup;
 			children = (
+				F10000010000000000000001 /* MLMijiaPowerController.m */,
+				F10000030000000000000003 /* mijia_power.py */,
 				4CD17E9B2733C0FC004D438C /* README.md */,
 				4C2556A121F56F280009838E /* Moonlight.entitlements */,
 				98AB2E7F1CAD46830089BB98 /* moonlight-common.xcodeproj */,
@@ -450,6 +456,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10000040000000000000004 /* mijia_power.py in Resources */,
 				A4B1C1002D9F0A1B00C0FF04 /* Localizable.strings in Resources */,
 				A4B1C1002D9F0A1B00C0FF10 /* InfoPlist.strings in Resources */,
 			);
@@ -537,6 +544,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10000020000000000000002 /* MLMijiaPowerController.m in Sources */,
 				D10000020000000000000002 /* FoundationDisplayView.swift in Sources */,
 				D20000010000000000000001 /* FileProviderSharedState.swift in Sources */,
 				D20000220000000000000022 /* Ds5HapticsAudioRenderer.m in Sources */,

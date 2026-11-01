@@ -20,3 +20,6 @@ dist/
 *.ips
 
 release_body.md
+
+# Python helper test caches
+__pycache__/

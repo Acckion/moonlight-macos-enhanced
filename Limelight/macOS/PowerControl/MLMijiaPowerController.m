@@ -1,4 +1,5 @@
 #import "MLMijiaPowerController.h"
+#import "Logger.h"
 
 @interface MLMijiaPowerController ()
 @property (nonatomic, strong) NSMutableSet<NSString *> *busyHosts;
@@ -84,6 +85,14 @@
     [self run:arguments host:uuid completion:^(NSDictionary *result, NSString *error) {
         if (error) {
             [self message:[self text:@"电源操作未完成" english:@"Power action incomplete"] detail:error];
+            return;
+        }
+        BOOL confirmed = !result[@"outcome"] || [result[@"outcome"] isEqualToString:@"confirmed"];
+        if (!confirmed) {
+            NSString *detail = [result[@"accepted"] boolValue]
+                ? [self text:@"电源指令已被云端接受，但插座状态尚未同步确认。实际电源可能已经切换。请使用“查看电源状态”核对，不要因为此提示重复切换电源。" english:@"The cloud accepted the command, but the plug state has not synchronized yet. Power may already have changed. Use Power Status to check before issuing another action."]
+                : [self text:@"发送电源指令后未能确认结果，实际电源可能已经切换。请使用“查看电源状态”或米家 App 核对，不要直接重复操作。" english:@"The outcome could not be confirmed after sending the command. Power may already have changed. Check Power Status or Xiaomi Home before retrying."];
+            [self message:[self text:@"电源状态待确认" english:@"Power state pending"] detail:detail];
             return;
         }
         BOOL on = [result[@"on"] boolValue];
@@ -178,6 +187,9 @@
         NSString *error = result[@"error"];
         if (timedOut) error = [self text:@"云端请求超时，结果未知。请先查询电源状态，再决定是否重试。" english:@"The request timed out; the outcome is unknown. Check Power Status before retrying."];
         if (!error && (!started || task.terminationStatus != 0 || !result[@"did"])) error = [self text:@"米家控制失败。请检查网络、uv 和米家登录状态。" english:@"Xiaomi control failed. Check the network, uv installation and Xiaomi sign-in."];
+        Log(error ? LOG_W : LOG_I, @"[mijia-power] command=%@ exit=%d timeout=%d result=%d outcome=%@",
+            arguments.firstObject, started ? task.terminationStatus : -1, timedOut,
+            result[@"did"] != nil, result[@"outcome"] ?: @"unavailable");
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.busyHosts removeObject:uuid];
             if (window) [window endSheet:progress.window];

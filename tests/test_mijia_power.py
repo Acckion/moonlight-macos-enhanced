@@ -40,8 +40,10 @@ class PowerSafetyTests(unittest.TestCase):
              patch.object(power, 'mijiaDevice', return_value=plug), \
              patch.object(power, 'verify_shutdown_guard', side_effect=guard) as check, \
              patch.object(sys, 'argv', ['helper', command, '--device', '123', '--guard-host', 'pc']), \
-             contextlib.redirect_stdout(io.StringIO()):
+             patch.object(power.time, 'sleep'), \
+            contextlib.redirect_stdout(io.StringIO()) as output:
             power.main()
+            self.result = __import__('json').loads(output.getvalue())
             return check.call_count
 
     def test_status_never_writes(self):
@@ -78,6 +80,54 @@ class PowerSafetyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_command('off', plug)
         self.assertEqual(plug.writes, [])
+
+    def test_delayed_cloud_state_is_polled_without_resending(self):
+        class Delayed(Plug):
+            reads = 0
+            def get(self, prop):
+                if prop == 'on-2' and self.writes:
+                    self.reads += 1
+                    if self.reads < 3:
+                        return False
+                return super().get(prop)
+        plug=Delayed(False)
+        self.run_command('on', plug)
+        self.assertEqual(plug.writes, [('on-2', True)])
+        self.assertEqual(self.result['outcome'], 'confirmed')
+
+    def test_accepted_command_with_unavailable_readback_is_pending(self):
+        class NoReadback(Plug):
+            def get(self, prop):
+                if prop == 'on-2' and self.writes:
+                    raise TimeoutError('Read timed out')
+                return super().get(prop)
+        plug=NoReadback(False)
+        self.run_command('on', plug)
+        self.assertTrue(plug.on)
+        self.assertEqual(len(plug.writes), 1)
+        self.assertEqual(self.result['outcome'], 'pending')
+        self.assertIsNone(self.result['on'])
+
+    def test_lost_write_response_is_recovered_by_readback(self):
+        class LostResponse(Plug):
+            def set(self, prop, value):
+                super().set(prop, value)
+                raise TimeoutError('Response lost after actuation')
+        plug=LostResponse(False)
+        self.run_command('on', plug)
+        self.assertEqual(len(plug.writes), 1)
+        self.assertEqual(self.result['outcome'], 'confirmed')
+
+    def test_optional_telemetry_cannot_fail_confirmed_operation(self):
+        class NoTelemetry(Plug):
+            def get(self, prop):
+                if prop != 'on-2':
+                    raise TimeoutError('No telemetry')
+                return super().get(prop)
+        plug=NoTelemetry(False)
+        self.run_command('on', plug)
+        self.assertEqual(self.result['outcome'], 'confirmed')
+        self.assertIsNone(self.result['watts'])
 
     def test_ssh_option_is_rejected_before_process_launch(self):
         with patch.object(power.subprocess, 'run') as run:

@@ -8,12 +8,14 @@ import base64
 import json
 import subprocess
 import sys
+import time
 import requests
 
 # Bound individual cloud requests; a network failure must not hold the UI indefinitely.
+_request_timeout = 15
 _request = requests.sessions.Session.request
 def _bounded_request(self, method, url, **kwargs):
-    kwargs.setdefault("timeout", 15)
+    kwargs.setdefault("timeout", _request_timeout)
     return _request(self, method, url, **kwargs)
 from mijiaAPI import mijiaAPI, mijiaDevice
 
@@ -34,6 +36,7 @@ def verify_shutdown_guard(alias):
 
 
 def main():
+    global _request_timeout
     requests.sessions.Session.request = _bounded_request
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=('resolve', 'status', 'on', 'off'))
@@ -57,18 +60,42 @@ def main():
     # Only this verified model is supported: its other `on-*` properties control protections.
     if plug.model != 'cuco.plug.v3':
         raise ValueError('目前只支持已验证的 cuco.plug.v3 插座，未操作此设备。')
-    if args.command in ('on', 'off'):
-        target = args.command == 'on'
-        current = plug.get('on-2')
-        # Idempotent: never power-cycle a running PC when clicking Power On.
-        if current != target:
-            if not target:
-                verify_shutdown_guard(args.guard_host)
+    outcome = 'confirmed'
+    accepted = False
+    state = plug.get('on-2')
+    target = args.command == 'on'
+    if args.command in ('on', 'off') and state != target:
+        if not target:
+            verify_shutdown_guard(args.guard_host)
+        # Send exactly once. A cloud timeout after sending does not prove rejection.
+        try:
             plug.set('on-2', target)
-            if plug.get('on-2') != target:
-                raise RuntimeError('米家云端未确认电源变更，请在米家 App 核对。')
+            accepted = True
+        except Exception:
+            outcome = 'unknown'
+        # Relay actuation and cloud property updates are asynchronous. Confirm with
+        # bounded read-only polling; never repeat a write just because a read is stale.
+        state = None
+        _request_timeout = 3
+        deadline = time.monotonic() + 10
+        for attempt in range(6):
+            if attempt and time.monotonic() >= deadline:
+                outcome = 'pending' if accepted else 'unknown'
+                break
+            try:
+                state = plug.get('on-2')
+                if state == target:
+                    outcome = 'confirmed'
+                    break
+            except Exception:
+                pass
+            if attempt < 5:
+                time.sleep(1)
+        else:
+            outcome = 'pending' if accepted else 'unknown'
     output = {'did': str(info['did']), 'name': plug.name, 'model': plug.model,
-              'on': plug.get('on-2')}
+              'on': state, 'outcome': outcome, 'accepted': accepted,
+              'requestedOn': target if args.command in ('on', 'off') else None}
     # Optional telemetry must not turn a confirmed power action into an apparent failure.
     for key, prop in [('watts', 'electric-power'), ('fault', 'fault')]:
         try:

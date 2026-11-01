@@ -36,7 +36,12 @@ models must have explicit, tested property mappings before being enabled.
 
 Disconnecting the plug confirms only AC disconnection, not completed Windows
 shutdown. Unsaved applications can block a non-forced shutdown, and a user can
-cancel the countdown. The app does not force applications closed or wait for the
+cancel the countdown. After one write, the helper polls state without resending. Delayed cloud sync is
+shown as pending, and a lost response is shown as unknown unless readback confirms
+the requested state. Optional telemetry failures do not invalidate a confirmed
+relay change.
+
+The app does not force applications closed or wait for the
 PC to go offline. An unavailable SSH connection blocks an on→off action. Power On
 and status work independently of Windows being online.
 

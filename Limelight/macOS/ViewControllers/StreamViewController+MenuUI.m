@@ -1196,7 +1196,6 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
 }
 
 - (void)installStreamMenuEntrypoints {
-    [self installStreamMenuBarItemIfNeeded];
     if (!MLUseFloatingControlOrb) {
         return;
     }

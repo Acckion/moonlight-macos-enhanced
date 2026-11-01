@@ -926,6 +926,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
     self.streamView.statusText = @"Starting";
     self.view.window.tabbingMode = NSWindowTabbingModeDisallowed;
     self.view.window.delegate = self;
+    [self installStreamMenuBarItemIfNeeded];
     [self prepareStreamWindowChromeForStreamingIfNeeded];
     [self.view.window makeFirstResponder:self];
 

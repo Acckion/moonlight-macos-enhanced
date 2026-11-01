@@ -2070,3 +2070,7 @@
 "Free Window fallback notice" = "这台主机不能跟着窗口改分辨率，窗口会保持串流的比例。";
 "Common" = "常见";
 "This Mac's Screens" = "本机屏幕";
+
+/* Fullscreen presentation */
+"Show macOS Menu Bar in Fullscreen" = "全屏时显示 macOS 菜单栏";
+"Fullscreen Menu Bar Hint" = "在全屏和无边框全屏时保持菜单栏可见。关闭后，移到顶部也不弹出菜单栏。普通窗口遵循 macOS 设置。";

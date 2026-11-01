@@ -89,7 +89,7 @@ extension Settings {
     "timingPrioritizeResponsiveness", "displaySyncMode", "frameQueueTarget",
     "videoFecPercentage", "timingResponsivenessBias", "allowDrawableTimeoutMode",
     "timingCompatibilityMode", "timingSdrCompatibilityWorkaround", "enableAdaptiveBitrate",
-    "notchMode", "freeWindowScaleMode", "freeWindowInitialSize", "screenResolutions",
+    "showMenuBarInFullscreen", "notchMode", "freeWindowScaleMode", "freeWindowInitialSize", "screenResolutions",
   ]
 
   /// Sets the host-only fields to those of `other` (none when nil).

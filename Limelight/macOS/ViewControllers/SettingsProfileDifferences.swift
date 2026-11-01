@@ -202,6 +202,9 @@ enum SettingsProfileDifferences {
       }
       return Reading(parts.joined(separator: ", "))
     },
+    Field(titleKey: "Show macOS Menu Bar in Fullscreen") { v in
+      option((v.settings?.showMenuBarInFullscreen ?? false) ? "On" : "Off")
+    },
     Field(titleKey: "Notch") { v in
       option((v.settings?.notchMode ?? 0) == StreamNotchMode.fill.rawValue ? "Fill Screen" : "Avoid Notch")
     },

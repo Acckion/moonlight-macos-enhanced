@@ -57,6 +57,10 @@ static FakeApp *NSApp;
 @interface StreamViewController : NSViewController
 @property NSWindowController *presentationWindowController;
 @property BOOL pendingCloseWindowAfterFullscreenExit;
+@property BOOL pendingFullscreenMenuBarRefresh;
+@property BOOL fullscreenMenuBarPreferenceApplied;
+@property int menuBarRestores;
+@property int fullscreenResumes;
 @property BOOL fullscreenTransitionInProgress;
 @property BOOL stopped;
 @property int stops;
@@ -72,6 +76,8 @@ static FakeApp *NSApp;
 - (BOOL)isOurWindowTheWindowInNotiifcation:(NSNotification *)note;
 - (void)logCurrentWindowStateWithContext:(NSString *)context;
 - (void)requestSafeCloseOfStreamWindow;
+- (void)restorePresentationOptionsIfNeeded;
+- (void)resumeFullscreenAfterMenuBarRefresh;
 - (void)tearDownPresentationWindowObservers;
 - (void)windowDidFailToExitFullScreen:(NSWindow *)window;
 @end
@@ -85,6 +91,8 @@ impl=r'''
 - (BOOL)isOurWindowTheWindowInNotiifcation:(NSNotification *)n { return n.object==self.testWindow; }
 - (void)logCurrentWindowStateWithContext:(NSString *)s {}
 - (void)requestSafeCloseOfStreamWindow { self.closeContinuations++; [self.testWindow close]; }
+- (void)restorePresentationOptionsIfNeeded { self.menuBarRestores++; }
+- (void)resumeFullscreenAfterMenuBarRefresh { self.fullscreenResumes++; }
 '''+life+failure+'\n@end\n'
 checks=r'''
 static ClientWindow *create(StreamViewController **out) {
@@ -104,23 +112,33 @@ int main(void) { @autoreleasepool {
  assert(!deadWindow && !deadController);
  StreamViewController *c,*other;ClientWindow *window=create(&c),*live=create(&other);
  c.pendingCloseWindowAfterFullscreenExit=YES;c.fullscreenTransitionInProgress=YES;
+ c.pendingFullscreenMenuBarRefresh=YES;
  __weak StreamViewController *weakSelf=c;
  c.windowDidExitFullScreenNotification=[[NSNotificationCenter defaultCenter] addObserverForName:@"didExit" object:nil queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *note) {
 '''+continuation+r'''
  }];
+ // A menu-bar refresh restores presentation before re-entering, without closing the stream.
+ c.pendingCloseWindowAfterFullscreenExit=NO;
+ [[NSNotificationCenter defaultCenter] postNotificationName:@"didExit" object:window];
+ assert(c.fullscreenResumes==1 && c.closeContinuations==0 && window.visible);
+ assert(!c.pendingFullscreenMenuBarRefresh && c.menuBarRestores==1);
+ c.pendingCloseWindowAfterFullscreenExit=YES;c.pendingFullscreenMenuBarRefresh=YES;
  // Network stop occurs before AppKit reports exit from the native fullscreen Space.
  [c beginStopStreamIfNeededWithReason:@"disconnect"];
  [[NSNotificationCenter defaultCenter] postNotificationName:@"didExit" object:live];assert(c.closeContinuations==0);
  [[NSNotificationCenter defaultCenter] postNotificationName:@"didExit" object:window];
  assert(c.closeContinuations==1 && window.closes==1 && !window.visible);
+ assert(c.menuBarRestores==2 && c.fullscreenResumes==1);
  assert(c.windowDidExitFullScreenNotification==nil && c.stops==1);
  assert(live.visible && live.closes==0 && other.stops==0);
  [[NSNotificationCenter defaultCenter] postNotificationName:@"didExit" object:window];assert(window.closes==1);
  // Failure to leave fullscreen restores a usable window instead of an invisible ghost.
  other.pendingCloseWindowAfterFullscreenExit=YES;other.fullscreenTransitionInProgress=YES;
+ other.pendingFullscreenMenuBarRefresh=YES;
  live.alphaValue=0;live.ignoresMouseEvents=YES;live.visible=NO;
  [other windowDidFailToExitFullScreen:live];
  assert(live.visible && live.alphaValue==1 && !live.ignoresMouseEvents && !other.pendingCloseWindowAfterFullscreenExit);
+ assert(!other.pendingFullscreenMenuBarRefresh);
  [live close];
  puts("PASS: production close breaks window/VC/controller cycle and removes window entries");
  puts("PASS: production fullscreen continuation survives stream stop; unrelated/repeated events are harmless");

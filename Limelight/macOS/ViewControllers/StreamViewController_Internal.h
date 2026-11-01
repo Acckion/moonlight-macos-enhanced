@@ -477,6 +477,11 @@ static const NSTimeInterval MLStatsOverlayRefreshIntervalSec = 0.5;
 @property (nonatomic) BOOL deferredCommandModifierForwardedAsHeld;
 @property (nonatomic) NSUInteger deferredCommandModifierDispatchToken;
 
+@property (nonatomic) BOOL fullscreenMenuBarPreferenceApplied;
+@property (nonatomic) BOOL fullscreenMenuBarAppliedValue;
+@property (nonatomic) BOOL savedAppMenuBarPreferenceValid;
+@property (nonatomic, strong) id savedAppMenuBarPreference;
+@property (nonatomic) BOOL pendingFullscreenMenuBarRefresh;
 @property (nonatomic) BOOL savedPresentationOptionsValid;
 @property (nonatomic) NSApplicationPresentationOptions savedPresentationOptions;
 @property (nonatomic) BOOL savedStreamWindowChromeValid;
@@ -790,6 +795,9 @@ static const NSTimeInterval MLStatsOverlayRefreshIntervalSec = 0.5;
 @end
 
 @interface StreamViewController (WindowModes) <NSWindowDelegate>
+- (void)applyFullscreenMenuBarPreferenceIfNeeded;
+- (void)resumeFullscreenAfterMenuBarRefresh;
+- (IBAction)toggleFullscreenMenuBarFromMenu:(id)sender;
 - (void)enterBorderlessPresentationOptionsIfNeeded;
 - (void)restorePresentationOptionsIfNeeded;
 - (void)prepareStreamWindowChromeForStreamingIfNeeded;

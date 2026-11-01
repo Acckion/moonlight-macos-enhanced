@@ -596,6 +596,12 @@ class SettingsModel: ObservableObject {
   }
 
   // Picture: see StreamDisplay.swift
+  @Published var showMenuBarInFullscreen = false {
+    didSet {
+      guard !isLoading else { return }
+      saveSettings()
+    }
+  }
   @Published var notchMode = StreamNotchMode.avoid.rawValue {
     didSet {
       guard !isLoading else { return }
@@ -1693,6 +1699,7 @@ class SettingsModel: ObservableObject {
     enableYUV444 = Self.defaultEnableYUV444
     ignoreAspectRatio = Self.defaultIgnoreAspectRatio
     showLocalCursor = Self.defaultShowLocalCursor
+    showMenuBarInFullscreen = false
     notchMode = StreamNotchMode.avoid.rawValue
     freeWindowScaleMode = FreeWindowScaleMode.pixels.rawValue
     freeWindowInitialSize = 0

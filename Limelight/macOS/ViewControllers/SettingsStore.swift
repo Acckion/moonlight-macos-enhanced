@@ -143,6 +143,7 @@ struct Settings: Encodable, Decodable {
   var enableAdaptiveBitrate: Bool? = nil
 
   // Picture: see StreamDisplay.swift
+  var showMenuBarInFullscreen: Bool? = nil
   var notchMode: Int? = nil
   var freeWindowScaleMode: Int? = nil
   var freeWindowInitialSize: Int? = nil
@@ -152,6 +153,7 @@ struct Settings: Encodable, Decodable {
   /// Carries the fields that the memberwise initializer leaves at their defaults.
   fileprivate func withPictureFields(of source: Settings) -> Settings {
     var settings = self
+    settings.showMenuBarInFullscreen = source.showMenuBarInFullscreen
     settings.notchMode = source.notchMode
     settings.freeWindowScaleMode = source.freeWindowScaleMode
     settings.freeWindowInitialSize = source.freeWindowInitialSize

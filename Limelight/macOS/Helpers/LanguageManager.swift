@@ -81,6 +81,8 @@ public class LanguageManager: NSObject, ObservableObject {
   }
 
   private let en: [String: String] = [
+    "Show macOS Menu Bar in Fullscreen": "Show macOS Menu Bar in Fullscreen",
+    "Fullscreen Menu Bar Hint": "Keep the menu bar visible in fullscreen and borderless fullscreen. When off, it stays hidden even at the top edge. Windowed mode follows macOS settings.",
     "Stream": "Stream",
     "Video and Audio": "Video and Audio",
     "Input": "Input",
@@ -493,6 +495,8 @@ public class LanguageManager: NSObject, ObservableObject {
   ]
 
   private let zhHans: [String: String] = [
+    "Show macOS Menu Bar in Fullscreen": "全屏时显示 macOS 菜单栏",
+    "Fullscreen Menu Bar Hint": "在全屏和无边框全屏时保持菜单栏可见。关闭后，移到顶部也不弹出菜单栏。普通窗口遵循 macOS 设置。",
     "Stream": "串流",
     "Video and Audio": "音视频",
     "Input": "输入",

@@ -531,6 +531,13 @@ highFreqMotor:(unsigned short)highFreqMotor {
         if ([weakSelf isOurWindowTheWindowInNotiifcation:note]) {
             weakSelf.fullscreenTransitionInProgress = NO;
             [weakSelf logCurrentWindowStateWithContext:@"window-did-exit-fullscreen"];
+            [weakSelf restorePresentationOptionsIfNeeded];
+            weakSelf.fullscreenMenuBarPreferenceApplied = NO;
+            if (weakSelf.pendingFullscreenMenuBarRefresh && !weakSelf.pendingCloseWindowAfterFullscreenExit) {
+                weakSelf.pendingFullscreenMenuBarRefresh = NO;
+                [weakSelf resumeFullscreenAfterMenuBarRefresh];
+                return;
+            }
             if (weakSelf.pendingCloseWindowAfterFullscreenExit) {
                 weakSelf.pendingCloseWindowAfterFullscreenExit = NO;
                 [weakSelf requestSafeCloseOfStreamWindow];
@@ -559,6 +566,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
         if ([weakSelf isOurWindowTheWindowInNotiifcation:note]) {
             weakSelf.fullscreenTransitionInProgress = NO;
             [weakSelf logCurrentWindowStateWithContext:@"window-did-enter-fullscreen"];
+            [weakSelf applyFullscreenMenuBarPreferenceIfNeeded];
             [weakSelf requestStreamMenuEntrypointsVisibilityUpdate];
             if ([weakSelf isWindowInCurrentSpace]) {
                 if ([weakSelf isWindowFullscreen]) {
@@ -595,6 +603,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
             if ([weakSelf isWindowInCurrentSpace]) {
                 if ([weakSelf.view.window isKeyWindow]) {
                     [weakSelf claimClipboardSyncOwnershipIfNeeded];
+                    [weakSelf applyFullscreenMenuBarPreferenceIfNeeded];
                     Log(LOG_D, @"[diag] Window became key; rearming input capture (fullscreen=%d style=%llu level=%ld)",
                         [weakSelf isWindowFullscreen] ? 1 : 0,
                         (unsigned long long)weakSelf.view.window.styleMask,
@@ -645,6 +654,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
         [weakSelf refreshControllerShortcutContext];
         weakSelf.globalInactivePointerInsideStreamView = NO;
         [weakSelf refreshSystemGestureBlockWithReason:@"app-became-active"];
+        [weakSelf applyFullscreenMenuBarPreferenceIfNeeded];
         if ([weakSelf isWindowInCurrentSpace] && [weakSelf isCurrentPointerInsideStreamView]) {
             [weakSelf ensureStreamWindowKeyIfPossible];
         }
@@ -1005,6 +1015,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
     self.settingsDidChangeObserver = [[NSNotificationCenter defaultCenter] addObserverForName:NSUserDefaultsDidChangeNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [weakSelf updateWindowSubtitle];
         [weakSelf refreshInputDiagnosticsPreference];
+        [weakSelf applyFullscreenMenuBarPreferenceIfNeeded];
     }];
     self.streamShortcutSettingsDidChangeObserver = [[NSNotificationCenter defaultCenter] addObserverForName:@"MoonlightStreamShortcutsDidChange" object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         __strong typeof(weakSelf) strongSelf = weakSelf;

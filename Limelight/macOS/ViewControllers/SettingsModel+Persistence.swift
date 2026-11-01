@@ -284,6 +284,7 @@ extension SettingsModel {
     enableYUV444 = Self.defaultEnableYUV444
     ignoreAspectRatio = Self.defaultIgnoreAspectRatio
     showLocalCursor = Self.defaultShowLocalCursor
+    showMenuBarInFullscreen = false
     notchMode = StreamNotchMode.avoid.rawValue
     freeWindowScaleMode = FreeWindowScaleMode.pixels.rawValue
     freeWindowInitialSize = 0
@@ -443,6 +444,7 @@ extension SettingsModel {
       enableYUV444 = settings.enableYUV444 ?? Self.defaultEnableYUV444
       ignoreAspectRatio = settings.ignoreAspectRatio ?? Self.defaultIgnoreAspectRatio
       showLocalCursor = settings.showLocalCursor ?? Self.defaultShowLocalCursor
+      showMenuBarInFullscreen = settings.showMenuBarInFullscreen ?? false
       notchMode = settings.notchMode ?? StreamNotchMode.avoid.rawValue
       freeWindowScaleMode = settings.freeWindowScaleMode ?? FreeWindowScaleMode.pixels.rawValue
       freeWindowInitialSize = settings.freeWindowInitialSize ?? 0
@@ -1017,6 +1019,7 @@ extension SettingsModel {
       timingSdrCompatibilityWorkaround: timingSdrCompatibilityWorkaround,
       enableAdaptiveBitrate: enableAdaptiveBitrate
     )
+    settings.showMenuBarInFullscreen = showMenuBarInFullscreen
     settings.notchMode = notchMode
     settings.freeWindowScaleMode = freeWindowScaleMode
     settings.freeWindowInitialSize = freeWindowInitialSize

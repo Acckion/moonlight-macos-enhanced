@@ -179,6 +179,11 @@ struct PictureSection: View {
         .frame(width: 240, alignment: .trailing)
       }
 
+      ToggleCell(
+        title: "Show macOS Menu Bar in Fullscreen",
+        hintKey: "Fullscreen Menu Bar Hint",
+        boolBinding: $settingsModel.showMenuBarInFullscreen)
+
       if mode == .freeWindow {
         if hostLacksLiveResolution {
           SettingDescriptionRow(textKey: "Free Window needs Foundation Sunshine")

@@ -2020,3 +2020,7 @@
 "Display" = "Display";
 "Common" = "Common";
 "This Mac's Screens" = "This Mac's Screens";
+
+/* Fullscreen presentation */
+"Show macOS Menu Bar in Fullscreen" = "Show macOS Menu Bar in Fullscreen";
+"Fullscreen Menu Bar Hint" = "Keep the menu bar visible in fullscreen and borderless fullscreen. When off, it stays hidden even at the top edge. Windowed mode follows macOS settings.";

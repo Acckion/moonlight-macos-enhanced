@@ -9,6 +9,7 @@ extension SettingsSearchIndex {
     SettingsSearchEntry(id: "stream/General/Connection Method", pane: .stream, kind: .row, sectionKey: "General", titleKey: "Connection Method", detailKey: nil, keywords: []),
     SettingsSearchEntry(id: "stream/General/Connection Addresses", pane: .stream, kind: .row, sectionKey: "General", titleKey: "Connection Addresses", detailKey: "Connection Addresses detail", keywords: ["Manage Addresses"]),
     SettingsSearchEntry(id: "stream/Picture/Window Mode", pane: .stream, kind: .row, sectionKey: "Picture", titleKey: "Window Mode", detailKey: nil, keywords: ["Free Window", "Windowed", "Borderless Windowed", "Fullscreen"]),
+    SettingsSearchEntry(id: "stream/Picture/Show macOS Menu Bar in Fullscreen", pane: .stream, kind: .row, sectionKey: "Picture", titleKey: "Show macOS Menu Bar in Fullscreen", detailKey: "Fullscreen Menu Bar Hint", keywords: []),
     SettingsSearchEntry(id: "stream/Picture/Initial Size", pane: .stream, kind: .row, sectionKey: "Picture", titleKey: "Initial Size", detailKey: nil, keywords: ["Last Window Size"]),
     SettingsSearchEntry(id: "stream/Picture/Resolution", pane: .stream, kind: .row, sectionKey: "Picture", titleKey: "Resolution", detailKey: nil, keywords: []),
     SettingsSearchEntry(id: "stream/Picture/Custom Resolution", pane: .stream, kind: .row, sectionKey: "Picture", titleKey: "Custom Resolution", detailKey: nil, keywords: []),

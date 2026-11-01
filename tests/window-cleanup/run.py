@@ -63,6 +63,7 @@ static FakeApp *NSApp;
 @property int powerReleases;
 @property int closeContinuations;
 @property int menuBarRestores;
+@property int streamMenuRemovals;
 @property id windowDidExitFullScreenNotification;
 @property id windowDidEnterFullScreenNotification;
 @property id windowWillCloseNotification;
@@ -74,6 +75,7 @@ static FakeApp *NSApp;
 - (void)logCurrentWindowStateWithContext:(NSString *)context;
 - (void)requestSafeCloseOfStreamWindow;
 - (void)restorePresentationOptionsIfNeeded;
+- (void)removeStreamMenuBarItem;
 - (void)tearDownPresentationWindowObservers;
 - (void)windowDidFailToExitFullScreen:(NSWindow *)window;
 @end
@@ -88,6 +90,7 @@ impl=r'''
 - (void)logCurrentWindowStateWithContext:(NSString *)s {}
 - (void)requestSafeCloseOfStreamWindow { self.closeContinuations++; [self.testWindow close]; }
 - (void)restorePresentationOptionsIfNeeded { self.menuBarRestores++; }
+- (void)removeStreamMenuBarItem { self.streamMenuRemovals++; }
 '''+life+failure+'\n@end\n'
 checks=r'''
 static ClientWindow *create(StreamViewController **out) {
@@ -102,7 +105,7 @@ int main(void) { @autoreleasepool {
   StreamViewController *c;ClientWindow *window=create(&c);deadWindow=window;deadController=c;
   [window close];assert(window.closes==1 && !window.visible && window.excludedFromWindowsMenu);
   assert(!window.contentViewController && !window.windowController.window && !c.presentationWindowController);
-  assert(c.stops==1 && c.powerReleases==1);
+  assert(c.stops==1 && c.powerReleases==1 && c.streamMenuRemovals==1);
  }
  assert(!deadWindow && !deadController);
  StreamViewController *c,*other;ClientWindow *window=create(&c),*live=create(&other);
@@ -137,5 +140,5 @@ with tempfile.TemporaryDirectory(prefix='moonlight-window-test-') as tmp:
  subprocess.run([str(p/'test')],check=True)
 
 # Shared adapters must also survive delayed teardown of a previous presentation.
-for script in ('shared_input.py', 'awdl_ownership.py'):
+for script in ('shared_input.py', 'awdl_ownership.py', 'stream_menu.py'):
  subprocess.run([sys.executable, str(root/'tests/window-cleanup'/script)], check=True)

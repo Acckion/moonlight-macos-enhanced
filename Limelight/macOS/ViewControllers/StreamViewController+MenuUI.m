@@ -1168,7 +1168,35 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
     }
 }
 
+- (void)installStreamMenuBarItemIfNeeded {
+    NSMenu *mainMenu = NSApp.mainMenu;
+    if (!mainMenu || !self.view.window || self.stopStreamInProgress) return;
+
+    // One entry for the focused stream. Each controller owns its item so closing
+    // an older stream cannot remove another stream's entry.
+    if (!self.streamMenuBarItem) {
+        [self rebuildStreamMenu];
+        self.streamMenuBarItem = [[NSMenuItem alloc] initWithTitle:MLString(@"Stream", nil) action:NULL keyEquivalent:@""];
+        self.streamMenuBarItem.identifier = @"MoonlightStreamMenu";
+        self.streamMenuBarItem.submenu = self.streamMenu;
+    }
+    if (self.streamMenuBarItem.menu == mainMenu) return;
+    for (NSMenuItem *item in mainMenu.itemArray) {
+        if ([item.identifier isEqualToString:self.streamMenuBarItem.identifier]) {
+            [mainMenu removeItem:item];
+        }
+    }
+    NSInteger index = [mainMenu indexOfItemWithSubmenu:NSApp.windowsMenu];
+    [mainMenu insertItem:self.streamMenuBarItem atIndex:index >= 0 ? index : mainMenu.numberOfItems];
+}
+
+- (void)removeStreamMenuBarItem {
+    [self.streamMenuBarItem.menu removeItem:self.streamMenuBarItem];
+    self.streamMenuBarItem = nil;
+}
+
 - (void)installStreamMenuEntrypoints {
+    [self installStreamMenuBarItemIfNeeded];
     if (!MLUseFloatingControlOrb) {
         return;
     }
@@ -1409,7 +1437,9 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
     }
     if (!self.streamMenu) {
         self.streamMenu = [[NSMenu alloc] initWithTitle:@"StreamMenu"];
+        self.streamMenu.delegate = self;
     }
+    self.streamMenuBarItem.title = MLString(@"Stream", nil);
     [self.streamMenu removeAllItems];
 
     void (^setSymbol)(NSMenuItem *, NSString *) = ^(NSMenuItem *item, NSString *symbolName) {
@@ -2150,7 +2180,9 @@ static BOOL MLSyncMenuItems(NSMenu *menu, NSArray<NSDictionary<NSString *, id> *
 // controller panel through -update): refill it so it never shows what it knew when the
 // whole menu was built.
 - (void)menuNeedsUpdate:(NSMenu *)menu {
-    if (menu == self.displayScaleMenu) {
+    if (menu == self.streamMenu) {
+        [self rebuildStreamMenu];
+    } else if (menu == self.displayScaleMenu) {
         [self populateRemoteDisplayScaleMenu:menu];
         [self.remoteDisplayScale refreshOptionsIfStale];
     } else if (menu == self.audioOutputMenu) {

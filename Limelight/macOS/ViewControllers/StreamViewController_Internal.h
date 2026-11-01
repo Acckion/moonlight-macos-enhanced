@@ -409,6 +409,7 @@ static const NSTimeInterval MLStatsOverlayRefreshIntervalSec = 0.5;
 @property (nonatomic) BOOL suppressNextRightMouseUp;
 
 @property (nonatomic, strong) NSMenu *streamMenu;
+@property (nonatomic, strong) NSMenuItem *streamMenuBarItem;
 // Submenus that are refilled each time they open (see -menuNeedsUpdate:).
 @property (nonatomic, weak) NSMenu *displayScaleMenu;
 @property (nonatomic, weak) NSMenu *audioOutputMenu;
@@ -686,6 +687,8 @@ static const NSTimeInterval MLStatsOverlayRefreshIntervalSec = 0.5;
 - (NSString *)currentStreamHealthBadgeText;
 - (void)updateControlCenterStatus;
 - (void)installStreamMenuEntrypoints;
+- (void)installStreamMenuBarItemIfNeeded;
+- (void)removeStreamMenuBarItem;
 - (void)layoutStreamMenuEntrypointsIfNeeded;
 - (void)requestStreamMenuEntrypointsVisibilityUpdate;
 - (void)updateStreamMenuEntrypointsVisibility;

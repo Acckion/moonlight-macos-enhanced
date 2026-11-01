@@ -596,6 +596,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
             if ([weakSelf isWindowInCurrentSpace]) {
                 if ([weakSelf.view.window isKeyWindow]) {
                     [weakSelf claimClipboardSyncOwnershipIfNeeded];
+                    [weakSelf installStreamMenuBarItemIfNeeded];
                     Log(LOG_D, @"[diag] Window became key; rearming input capture (fullscreen=%d style=%llu level=%ld)",
                         [weakSelf isWindowFullscreen] ? 1 : 0,
                         (unsigned long long)weakSelf.view.window.styleMask,
@@ -1172,6 +1173,7 @@ highFreqMotor:(unsigned short)highFreqMotor {
 }
 
 - (void)finishClosingStreamWindow:(NSWindow *)window {
+    [self removeStreamMenuBarItem];
     // Network teardown must not own the lifetime of a closed presentation.
     [self beginStopStreamIfNeededWithReason:@"presentation-window-closed"];
     [self tearDownPresentationWindowObservers];

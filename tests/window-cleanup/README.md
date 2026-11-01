@@ -20,3 +20,8 @@ A Release build passed with Xcode 27.1 on Apple Silicon. A user verified that a
 real Desktop streaming session closes without leftover windows with the initial
 cleanup fix. The ownership follow-ups are covered by the isolated checks above.
 Intel hardware has not been tested.
+
+The stream-menu checks execute the production menu install/remove methods with
+real AppKit menu objects and no windows. They cover sharing the same menu, insertion
+before Window, repeated installation, focus ownership, stale/repeated cleanup,
+and refusing entries for stopped or missing stream windows.

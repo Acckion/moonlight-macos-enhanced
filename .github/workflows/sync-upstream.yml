@@ -1,0 +1,54 @@
+name: Sync upstream into power-control fork
+
+on:
+  schedule:
+    # 06:00 Asia/Shanghai. GitHub may delay scheduled runs.
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-power-control
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: github.repository == 'Acckion/moonlight-macos-enhanced'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/mijia-power-control
+          fetch-depth: 0
+
+      - name: Merge upstream without overwriting fork changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add source-upstream https://github.com/skyhua0224/moonlight-macos-enhanced.git
+          git fetch --no-tags source-upstream master
+          if git merge-base --is-ancestor source-upstream/master HEAD; then
+            echo 'Already up to date.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if ! git merge --no-edit source-upstream/master; then
+            echo '::error::Upstream conflicts with the fork. No changes were pushed; resolve the conflict manually.'
+            git diff --name-only --diff-filter=U >> "$GITHUB_STEP_SUMMARY"
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Check power-control safety regressions
+        run: python3 -m unittest discover -s tests -p test_mijia_power.py -v
+
+      - name: Publish successful merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A concurrent user push causes a safe rejection; never force-push.
+          git push origin HEAD:feat/mijia-power-control
+          echo 'Upstream merged and power-control tests passed. Installed Mac apps are unchanged.' >> "$GITHUB_STEP_SUMMARY"

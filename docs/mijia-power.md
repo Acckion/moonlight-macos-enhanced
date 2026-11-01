@@ -66,3 +66,14 @@ name. The packaged app leaves the upstream updater unconfigured to avoid
 overwrites; it does not change the original application or its update settings.
 The bundle identifier is retained so the local host library and settings are reused.
 Do not run the original and local builds simultaneously.
+
+## Upstream synchronization
+
+The `Sync upstream into power-control fork` GitHub Actions workflow runs daily
+at approximately 06:00 Asia/Shanghai and supports manual dispatch. It merges
+`skyhua0224/moonlight-macos-enhanced:master` into `feat/mijia-power-control`, runs
+the power-safety tests, and only then pushes. It never resets or force-pushes.
+Conflicts, test failures, or concurrent pushes stop synchronization without
+changing the remote branch. Check GitHub Actions for failures; normal GitHub
+notification preferences determine whether you receive an email. This only
+updates repository source; it does not update the installed custom Mac app.
